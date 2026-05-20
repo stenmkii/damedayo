@@ -2,46 +2,42 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>プログラム設計 学習フォーム</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Program Design Study</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app">
+    <div class="container">
         <header>
-            <h1>プログラム設計 学習支援</h1>
+            <h1>Program Design Assessment</h1>
         </header>
 
-        <!-- モード選択画面 -->
-        <section id="top-page">
-            <h2>学習モードを選択してください</h2>
-            <div class="mode-buttons">
-                <button onclick="startApp('wordToMeaning')">単語 → 意味</button>
-                <button onclick="startApp('meaningToWord')">意味 → 単語</button>
+        <main id="main-content">
+            <!-- トップ画面 -->
+            <div id="setup-view">
+                <p class="instruction">学習するセクションを選択してください</p>
+                <div id="section-selector"></div>
+                <button class="btn-outline" onclick="startQuiz()">Start Quiz</button>
             </div>
-            <div class="section-choice">
-                <h3>出題セクション</h3>
-                <div id="section-list"></div>
-            </div>
-        </section>
 
-        <!-- クイズ画面 -->
-        <section id="quiz-page" style="display:none;">
-            <div class="quiz-header">
-                <span id="current-section-title"></span>
-                <button class="btn-small" onclick="backToTop()">トップに戻る</button>
-            </div>
-            <div id="question-container">
-                <p id="question-text"></p>
-                <div id="answer-input-area">
-                    <input type="text" id="answer-input" placeholder="回答を入力...">
-                    <button id="submit-btn" onclick="checkAnswer()">判定</button>
+            <!-- クイズ画面 -->
+            <div id="quiz-view" style="display:none;">
+                <div class="meta-info">
+                    <span id="current-section"></span>
+                    <span id="progress-text"></span>
                 </div>
-                <div id="feedback" class="feedback"></div>
-                <div id="correct-answer" style="display:none;"></div>
-                <button id="next-btn" style="display:none;" onclick="nextQuestion()">次へ</button>
+                <div class="question-box">
+                    <p id="question-sentence"></p>
+                    <input type="text" id="answer-input" autocomplete="off" placeholder="単語を入力">
+                </div>
+                <div id="result-area"></div>
+                <div class="nav-btns">
+                    <button id="check-btn" class="btn-outline" onclick="checkAnswer()">回答</button>
+                    <button id="next-btn" class="btn-outline" style="display:none;" onclick="nextQuestion()">次へ</button>
+                </div>
+                <a href="#" class="back-link" onclick="location.reload()">トップに戻る</a>
             </div>
-            <div class="progress">残り: <span id="remaining-count"></span></div>
-        </section>
+        </main>
     </div>
     <script src="script.js"></script>
 </body>
