@@ -1,97 +1,71 @@
-let quizData = null;
-let currentQuestions = [];
+let data = null;
+let quizList = [];
 let currentIndex = 0;
-let currentMode = ''; // 'wordToMeaning' or 'meaningToWord'
 
-// JSON読み込み
 fetch('data.json')
-    .then(response => response.json())
-    .then(data => {
-        quizData = data;
-        const listDiv = document.getElementById('section-list');
-        data.sections.forEach((s, index) => {
-            listDiv.innerHTML += `
+    .then(res => res.json())
+    .then(json => {
+        data = json;
+        const selector = document.getElementById('section-selector');
+        data.sections.forEach((s, i) => {
+            selector.innerHTML += `
                 <div class="section-item">
-                    <input type="checkbox" id="sec-${index}" value="${index}" checked>
-                    <label for="sec-${index}">${s.title}</label>
+                    <input type="checkbox" id="s${i}" value="${i}" checked>
+                    <label for="s${i}">${s.title}</label>
                 </div>`;
         });
     });
 
-function startApp(mode) {
-    currentMode = mode;
-    const selectedIndices = Array.from(document.querySelectorAll('#section-list input:checked')).map(i => parseInt(i.value));
-    
-    if(selectedIndices.length === 0) {
-        alert("セクションを選択してください");
-        return;
-    }
+function startQuiz() {
+    const checked = Array.from(document.querySelectorAll('#section-selector input:checked')).map(el => parseInt(el.value));
+    if (checked.length === 0) return alert("セクションを選択してください");
 
-    currentQuestions = [];
-    selectedIndices.forEach(idx => {
-        const section = quizData.sections[idx];
-        section.items.forEach(item => {
-            currentQuestions.push({
-                q: mode === 'wordToMeaning' ? item.word : item.meaning,
-                a: mode === 'wordToMeaning' ? item.meaning : item.word,
-                section: section.title
-            });
+    quizList = [];
+    checked.forEach(idx => {
+        data.sections[idx].items.forEach(item => {
+            quizList.push({ ...item, sectionTitle: data.sections[idx].title });
         });
     });
 
-    // シャッフル
-    currentQuestions.sort(() => Math.random() - 0.5);
-    currentIndex = 0;
-    
-    document.getElementById('top-page').style.display = 'none';
-    document.getElementById('quiz-page').style.display = 'block';
+    quizList.sort(() => Math.random() - 0.5);
+    document.getElementById('setup-view').style.display = 'none';
+    document.getElementById('quiz-view').style.display = 'block';
     showQuestion();
 }
 
 function showQuestion() {
-    const q = currentQuestions[currentIndex];
-    document.getElementById('current-section-title').innerText = q.section;
-    document.getElementById('question-text').innerText = q.q;
-    document.getElementById('remaining-count').innerText = currentQuestions.length - currentIndex;
-    document.getElementById('answer-input').value = '';
-    document.getElementById('feedback').innerText = '';
-    document.getElementById('correct-answer').style.display = 'none';
-    document.getElementById('next-btn').style.display = 'none';
-    document.getElementById('submit-btn').style.display = 'inline-block';
+    const q = quizList[currentIndex];
+    document.getElementById('current-section').innerText = q.sectionTitle;
+    document.getElementById('progress-text').innerText = `${currentIndex + 1} / ${quizList.length}`;
+    document.getElementById('question-sentence').innerText = q.sentence;
+    document.getElementById('answer-input').value = "";
+    document.getElementById('result-area').innerHTML = "";
+    document.getElementById('check-btn').style.display = "block";
+    document.getElementById('next-btn').style.display = "none";
+    document.getElementById('answer-input').focus();
 }
 
 function checkAnswer() {
-    const userAns = document.getElementById('answer-input').value.trim().toLowerCase();
-    const correctAns = currentQuestions[currentIndex].a.toLowerCase();
-    const feedback = document.getElementById('feedback');
-    const displayCorrect = document.getElementById('correct-answer');
+    const input = document.getElementById('answer-input').value.trim();
+    const correct = quizList[currentIndex].answer;
+    const resultArea = document.getElementById('result-area');
 
-    // 部分一致判定（単語→意味の場合は厳格にせず、意味→単語の場合はある程度許容）
-    if (userAns !== "" && (correctAns.includes(userAns) || userAns.includes(correctAns))) {
-        feedback.innerText = "正解！";
-        feedback.className = "feedback correct";
+    if (input === correct || correct.includes(input) && input.length > 1) {
+        resultArea.innerHTML = `<span class="correct">正解: ${correct}</span>`;
     } else {
-        feedback.innerText = "残念...";
-        feedback.className = "feedback incorrect";
+        resultArea.innerHTML = `<span class="incorrect">不正解</span><br>正解は「${correct}」です`;
     }
 
-    displayCorrect.innerHTML = `<strong>正解:</strong><br>${currentQuestions[currentIndex].a}`;
-    displayCorrect.style.display = 'block';
-    document.getElementById('submit-btn').style.display = 'none';
-    document.getElementById('next-btn').style.display = 'inline-block';
+    document.getElementById('check-btn').style.display = "none";
+    document.getElementById('next-btn').style.display = "block";
 }
 
 function nextQuestion() {
     currentIndex++;
-    if (currentIndex < currentQuestions.length) {
+    if (currentIndex < quizList.length) {
         showQuestion();
     } else {
-        alert("全問終了しました！トップに戻ります。");
-        backToTop();
+        alert("学習完了です。");
+        location.reload();
     }
-}
-
-function backToTop() {
-    document.getElementById('top-page').style.display = 'block';
-    document.getElementById('quiz-page').style.display = 'none';
 }
